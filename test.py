@@ -8,7 +8,7 @@ bias = []# see what can be done
 t = [0 for x in range(layers[-1])]
 
 weights = []
-drop = 0
+drop = [0, 0.5, 0.5, 0.5, 0]
 
 def f(x, str):
     if (str == "sigmoid"):
@@ -45,8 +45,8 @@ def updateDeltas(delta):                            # acc to mse
                 weiArr = weights[a-x][y]
                 delta[a-x][y] = (np.dot(delta[a-x+1], weiArr))*f_(activated[y], str)
 
-def thresh(a):
-    if a<drop:
+def thresh(a,l):
+    if a<drop[l]:
         return 0
     else:
     return 1
@@ -64,12 +64,12 @@ def forwProp(activated, ind):
     activate = activated[ind]
     if (ind == len(activated)-1):
         for x in range(len(activate)):
-            activate[x] = math.exp(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1))
+            activate[x] = math.exp(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
         sum = np.sum(activate)
         return activate/sum
     else:
         for x in range(len(activate)):
-            activate[x] = f(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1))
+            activate[x] = f(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
         return activate
 
 def cost(str):
