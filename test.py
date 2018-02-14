@@ -2,6 +2,7 @@ import numpy as np
 import math
 import random
 
+
 data = np.genfromtxt('/home/rishabh/Desktop/gzip/new_train.csv', delimiter=',')  # rows, columns = no of samples, dimension
 print data
 inp = data[:,1:]
@@ -50,6 +51,7 @@ def f_(x, str):
 for x in range(len(layers) - 1):
     a = np.random.rand(layers[x], layers[x + 1])
     b = np.random.rand(layers[x + 1])
+
     weights.append(a)
     bias.append(b)
     print(np.shape(a))
@@ -133,3 +135,4 @@ for ind_f in range(len(layers) - 1):
     # for active in layers[ind_f]:
     activated[ind_f + 1] = forwProp(activated, ind_f + 1)
 delta = updateDeltas(delta)
+
