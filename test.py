@@ -3,29 +3,29 @@ import math
 import random
 
 inp = np.ones((35353, 784))                 #rows, columns = no of samples, dimension
-layers = [len(inp), 10, 12, 13, 9]
-bias = []# see what can be done
-
-t = np.zeros((layers[-1], ))          #true values
+layers = [len(inp[0], 10, 12, 13, 9]          #No of neurons in each layer. layers[0] being the no of neurons in input layer.
+bias = []                                   # see what can be done
+t = np.zeros(len(inp),layers[-1])          #true values------stored as (no of input * output dimension). Each row of this matrix tells the output corresponding to that input.
 epoch = 1000
 learn_rate = 0.1
-
-
 weights = []
-drop = [0, 0.5, 0.5, 0.5, 0]
-
+drop = [0, 0.5, 0.5, 0.5, 0]                #drop out probabilities for each layer starting from input layer. No dropout in input as well as output layer.
+        
+# This is a function for the activation functions.It takes x as an input for to be used in activation function and str inducates which activation function will be used
 def f(x, str):
     if (str == "sigmoid"):
-        return 1/1+math.exp(-x)
+        return 1/(1+math.exp(-x))
     else:
         pass
-
+              
+# This is the derivative for the activation function.
 def f_(x, str):
     if (str == "sigmoid"):
-        return (1/1+math.exp(-x))*(1-1/1+math.exp(-x))
+        return (1/(1+math.exp(-x)))*(1-(1/(1+math.exp(-x))))
     else:
         pass
 
+# This creates an initial random 3-d matrix of weights.               
 for x in range(len(layers)-1):
     a = np.random.rand(layers[x], layers[x+1])
     weights.append(a)
