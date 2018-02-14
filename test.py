@@ -33,7 +33,7 @@ for x in range(len(layers)-1):
 
 
 
-activated = [np.ones((len(inp), len(range(x)))) for x in layers]
+activated = [np.ones((len(inp), len(range(x))), float) for x in layers]
 delta = [np.array([range(x)]) for x in layers[1:]]
 activated[0] = inp
 str = "sigmoid"
@@ -71,28 +71,36 @@ def forwProp(activated, ind):
     # layer wise activation, ind is index of layer to be activated, input excluded
     activate = activated[ind]
     if (ind == len(activated)-1):
-        for x in range(len(activate)):
-            activate[x] = math.exp(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
-        sum = np.sum(activate)
-        return activate/sum
+        for row in len(range(activate)):
+            for x in range(len(activate[row])):
+                activate[row][x] = math.exp(-1*np.dot(activated[row][ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
+
+        return activate/np.sum(activate,axis=1, keepdims=True)
     else:
-        for x in range(len(activate)):
-            activate[x] = f(np.dot(activated[ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
+        for row in len(range(activate)):
+            for x in range(len(activate[row])):
+                activate[row][x] = f(np.dot(activated[row][ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
         return activate
 
 def cost(str):
     ret = 0
-
-    for x in range(len(t)):
-        if str == "mse":
-            ret += (t[x] - activated[-1][x])**2
-
+    if (str == "mse"):
+        ret = np.sum((t - activated[-1])**2)
     return ret
 
 for ep in range(epoch):
-    for x in inp:
-        activated[0] = x
-        for ind_f in range(len(layers)-1):
-            # for active in layers[ind_f]:
-            activated[ind_f+1] = forwProp(activated, ind_f+1)
+    activated[0] = inp
+    for ind_f in range(len(layers)-1):
+        # for active in layers[ind_f]:
+        activated[ind_f+1] = forwProp(activated, ind_f+1)
+    delta = updateDeltas(delta)
+    print cost("mse")
+    for ind_f in range(len(layers)-1):
+        # for active in layers[ind_f]:
+        weights[ind_f] = backProp(weights[ind_f], learn_rate, 0, 0, ind_f)
 
+print "One last time"
+for ind_f in range(len(layers)-1):
+    # for active in layers[ind_f]:
+    activated[ind_f+1] = forwProp(activated, ind_f+1)
+delta = updateDeltas(delta)
