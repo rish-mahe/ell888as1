@@ -99,8 +99,7 @@ def forwProp(activated, ind):
     if (ind == len(activated) - 1):
         for row in range(len(activate)):
             for x in range(len(activate[row])):
-                activate[row][x] = math.exp(
-                    -1 * (np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind][x])) * thresh(
+                activate[row][x] = math.exp(-1 * (np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind][x])) * thresh(
                     random.uniform(0, 1), ind)
 
         return activate / np.sum(activate, axis=1, keepdims=True)
