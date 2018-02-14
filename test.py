@@ -3,7 +3,7 @@ import math
 import random
 
 inp = range(33)
-layers = [len(inp), 10, 12, 13, 9]
+layers = [len(inp), 10, -10, 12, 13, 9]
 bias = []# see what can be done
 t = [0 for x in range(layers[-1])]
 
