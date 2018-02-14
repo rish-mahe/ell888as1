@@ -2,13 +2,9 @@ import numpy as np
 import math
 import random
 
-<<<<<<< HEAD
-inp = range(33)
-layers = [len(inp), 10, -10, 12, 13, 9]
-=======
+
 inp = np.ones((35353, 784))                 #rows, columns = no of samples, dimension
 layers = [len(inp), 10, 12, 13, 9]
->>>>>>> cd8ba51b3cfa593eb12d75eb5b6fc5a57649526c
 bias = []# see what can be done
 
 t = np.zeros((layers[-1], ))          #true values
@@ -68,23 +64,30 @@ def backProp(weight, eta, nodeBack, layerForw, ind):
     # ind is index of prior layer, so input included and output excluded
     for x in range(len(weight)):
         for y in range(len(weight[x])):
-            weight[x][y] -= eta*np.sum(activated[ind], axis=0)[y]*delta[ind+1][x]
+            if(store[ind+1,x]==1):
+                weight[x][y] -= eta*np.sum(activated[ind], axis=0)[y]*delta[ind+1][x]
+            else:
+                pass
     return weight
 
-
+store = np.zeros(len(layers),max(layers))
 def forwProp(activated, ind):
     # layer wise activation, ind is index of layer to be activated, input excluded
     activate = activated[ind]
     if (ind == len(activated)-1):
         for row in len(range(activate)):
             for x in range(len(activate[row])):
-                activate[row][x] = math.exp(-1*np.dot(activated[row][ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
+                state = thresh(random.uniform(0, 1),ind)
+                activate[row][x] = math.exp(-1*np.dot(activated[row][ind-1], weights[ind-1][:,x]))*state
+                store[row,x] = state
 
         return activate/np.sum(activate,axis=1, keepdims=True)
     else:
         for row in len(range(activate)):
             for x in range(len(activate[row])):
-                activate[row][x] = f(np.dot(activated[row][ind-1], weights[ind-1][:,x]))*thresh(random.uniform(0, 1),ind)
+                state = thresh(random.uniform(0, 1),ind)
+                activate[row][x] = f(np.dot(activated[row][ind-1], weights[ind-1][:,x]))*state
+                store[row,x] = state
         return activate
 
 def cost(str):

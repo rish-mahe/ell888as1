@@ -14,7 +14,54 @@ learn_rate = 0.1
 
 weights = []
 drop = [0, 0.5, 0.5, 0.5, 0]
+norm = [0, 1, 1, 1, 0]
+cache = [None]*len(layers)
+gamma_list = [1 for x in layers]
+beta_list = [0 for x in layers]
 
+    # (done) method to store cache for that index number
+def bn_fwd(x,ind):
+    N,D = x.shape
+    gamma = gamma_list[ind]
+    beta = beta_list[ind]
+    mu = 1./N * np.sum(x, axis = 0)
+    xmu = x - mu
+    sq = xmu ** 2
+    var = 1./N * np.sum(sq, axis = 0)
+    sqrtvar = np.sqrt(var + eps)
+    ivar = 1./sqrtvar
+    xhat = xmu * ivar
+    gammax = gamma * xhat
+    out = gammax + beta
+    cache[ind] = (xhat,gamma,xmu,ivar,sqrtvar,var,eps)
+    return out
+    
+    # (done) method to extract corresponding cache by index or neuron number
+def bn_bwd(delta, cache):
+    xhat,gamma,xmu,ivar,sqrtvar,var,eps = cache[ind]
+    N,D = dout.shape
+    dbeta = np.sum(dout, axis=0)
+    dgammax = dout
+    dgamma = np.sum(dgammax*xhat, axis=0)
+    dxhat = dgammax * gamma
+    divar = np.sum(dxhat*xmu, axis=0)
+    dxmu1 = dxhat * ivar
+    dsqrtvar = -1. /(sqrtvar**2) * divar
+    dvar = 0.5 * 1. /np.sqrt(var+eps) * dsqrtvar
+    dsq = 1. /N * np.ones((N,D)) * dvar
+    dxmu2 = 2 * xmu * dsq
+    dx1 = (dxmu1 + dxmu2)
+    dmu = -1 * np.sum(dxmu1+dxmu2, axis=0)
+    dx2 = 1. /N * np.ones((N,D)) * dmu
+    dx = dx1 + dx2
+    gamma_list[ind] = update(gamma,dgamma)
+    beta_list[ind] = update(beta,dbeta)
+    return dx
+    
+def update(x,dx):
+    x = x-eta*dx
+    
+    
 def f(x, str):
     if (str == "sigmoid"):
         return 1/1+math.exp(-x)
@@ -31,8 +78,6 @@ for x in range(len(layers)-1):
     a = np.random.rand(layers[x], layers[x+1])
     weights.append(a)
     print(np.shape(a))
-
-
 
 activated = [np.ones((len(inp), len(range(x))), float) for x in layers]
 delta = [np.array([range(x)]) for x in layers[1:]]
@@ -65,6 +110,8 @@ def backProp(weight, eta, nodeBack, layerForw, ind):
         for y in range(len(weight[x])):
             if(store[ind+1,x]==1):
                 weight[x][y] -= eta*np.sum(activated[ind], axis=0)[y]*delta[ind+1][x]
+                if(norm[ind]==1):
+                    weight[x][y] = bn_bwd(weight[x][y],ind)
             else:
                 pass
     return weight
@@ -76,8 +123,11 @@ def forwProp(activated, ind):
     if (ind == len(activated)-1):
         for row in len(range(activate)):
             for x in range(len(activate[row])):
+                
                 state = thresh(random.uniform(0, 1),ind)
-                activate[row][x] = math.exp(-1*np.dot(activated[row][ind-1], weights[ind-1][:,x]))*state
+                activate[row][x] = math.exp(-1*np.dot(activated[ind-1][row], weights[ind-1][:,x]))*state
+                if(norm[ind]==1):
+                    activate[row][x] = bn_fwd(activate[row][x],ind)
                 store[row,x] = state
 
         return activate/np.sum(activate,axis=1, keepdims=True)
@@ -86,6 +136,8 @@ def forwProp(activated, ind):
             for x in range(len(activate[row])):
                 state = thresh(random.uniform(0, 1),ind)
                 activate[row][x] = f(np.dot(activated[row][ind-1], weights[ind-1][:,x]))*state
+                if(norm[ind]==1):
+                    activate[row][x] = bn_fwd(activate[row][x],ind)
                 store[row,x] = state
         return activate
 
