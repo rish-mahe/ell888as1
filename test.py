@@ -3,6 +3,11 @@ import math
 import random
 
 
+
+inp = np.ones((35353, 784))                 #rows, columns = no of samples, dimension
+layers = [len(inp), 10, 12, 13, 9]
+bias = []# see what can be done
+
 data = np.genfromtxt('/home/rishabh/Desktop/gzip/new_train.csv', delimiter=',')  # rows, columns = no of samples, dimension
 # print data
 # data = data
@@ -100,8 +105,7 @@ def thresh(a, l):
     if a < drop[l]:
         return 0
     else:
-        pass
-    return 1
+        return 1
 
 
 def backProp(weight, eta, nodeBack, layerForw, ind, bias):
@@ -110,35 +114,35 @@ def backProp(weight, eta, nodeBack, layerForw, ind, bias):
     # print "backprop"
     for x in range(len(weight)):
         for y in range(len(weight[x])):
-            # print delta[ind][y]
-            weight[x][y] -= eta * np.sum(activated[ind], axis=0)[x] * delta[ind][y]
-            # print eta * np.sum(activated[ind], axis=0)[x] * delta[ind][y]
-            # print x, y, ind
-    bias -= delta[ind]
+            if(store[ind+1,x]==1):
+                weight[x][y] -= eta * np.sum(activated[ind], axis=0)[x] * delta[ind][y]
+                # print eta * np.sum(activated[ind], axis=0)[x] * delta[ind][y]
+                # print x, y, ind
+                bias -= delta[ind]
+            else:
+                pass
     return weight, bias
 
 
+store = np.zeros(len(layers),max(layers))
 def forwProp(activated, ind):
     # layer wise activation, ind is index of layer to be activated, input excluded
-    # print "frontprop"
-    try:
-        activate = activated[ind]
-        if (ind == len(activated) - 1):
-            for row in range(len(activate)):
-                for x in range(len(activate[row])):
-                    activate[row][x] = math.exp(-1 * (np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind-1][x])) #* thresh(random.uniform(0, 1), ind)
+    activate = activated[ind]
+    if (ind == len(activated) - 1):
+        for row in range(len(activate)):
+            for x in range(len(activate[row])):
+                state = thresh(random.uniform(0, 1),ind)
+                activate[row][x] = math.exp(-1 * (np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind - 1][x]))*state
+                store[row,x] = state
 
-            return activate / np.sum(activate, axis=1, keepdims=True)
-        else:
-            for row in range(len(activate)):
-                for x in range(len(activate[row])):
-                    activate[row][x] = f((np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind-1][x]), "sigmoid") #* thresh(random.uniform(0, 1), ind)
-            return activate
-    except:
-        # print weights
-        print np.dot(activated[ind - 1][row], weights[ind - 1][:, x]), "exponent"
-
-
+        return activate / np.sum(activate, axis=1, keepdims=True)
+    else:
+        for row in range(len(activate)):
+            for x in range(len(activate[row])):
+                state = thresh(random.uniform(0, 1),ind)
+                activate[row][x] = f((np.dot(activated[ind - 1][row], weights[ind - 1][:, x]) + bias[ind - 1][x]), "sigmoid")*state
+                store[row,x] = state
+        return activate
 
 def cost(str):
     ret = 0
@@ -164,6 +168,6 @@ for ep in range(epoch):
 print "One last time"
 for ind_f in range(len(layers) - 1):
     # for active in layers[ind_f]:
-    activated[ind_f + 1] = forwProp(activated, ind_f + 1)
 
-
+    activated[ind_f+1] = forwProp(activated, ind_f+1)
+delta = updateDeltas(delta)
